@@ -8,10 +8,6 @@ __email__ = "donniedice@protonmail.com"
 
 def main():
     """Entry point for the protondrive-gui command"""
-    import sys
-    import os
-    sys.path.insert(0, os.path.dirname(__file__))
-    
     from .gui import ProtonDriveGUI
     import tkinter as tk
     
