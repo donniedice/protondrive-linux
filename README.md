@@ -82,11 +82,27 @@ protondrive-gui
 
 1. **Launch**: Run `protondrive-gui` from terminal or application menu
 2. **Configure**: Enter your ProtonMail credentials
+   - Email: Your ProtonMail email address
+   - Password: Your ProtonMail password
+   - 2FA Code: If you have 2FA enabled, enter the current code
 3. **Connect**: Click "Configure ProtonDrive"
 4. **Use**:
    - **Sync**: Select local folder to sync
    - **Browse**: View ProtonDrive contents
    - **Mount**: Mount as local drive
+
+### 🔐 Two-Factor Authentication (2FA)
+
+If you have 2FA enabled on your ProtonMail account:
+1. Enter your 6-digit 2FA code in the "2FA Code" field
+2. The code must be current (codes expire every 30 seconds)
+3. If configuration fails, try again with a fresh code
+
+**Manual Configuration** (if GUI fails):
+```bash
+cd /path/to/protondrive-linux
+python manual_configure.py
+```
 
 ## 🛠️ Development
 
@@ -136,6 +152,31 @@ Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTIN
 - No credentials stored in plaintext
 - All communication via HTTPS
 - Regular security audits via GitHub Actions
+
+## 🔧 Troubleshooting
+
+### "Username and password are required" error
+- Make sure you've entered both email and password
+- If using 2FA, ensure the code is current (not expired)
+- Try the manual configuration script: `python manual_configure.py`
+
+### "Command not found: protondrive-gui"
+- If installed via pip in a virtual environment, activate it first:
+  ```bash
+  source venv/bin/activate
+  protondrive-gui
+  ```
+- Or run directly: `python -m protondrive`
+
+### 2FA Authentication Issues
+- 2FA codes expire every 30 seconds - use a fresh code
+- Ensure your system time is synchronized
+- Some authenticator apps show a countdown timer
+
+### Connection Errors
+- Check your internet connection
+- Verify ProtonMail credentials are correct
+- Ensure ProtonDrive is accessible in your region
 
 ## 📊 Project Status
 

@@ -1,33 +1,30 @@
 Metadata-Version: 2.4
 Name: protondrive-linux
-Version: 1.0.0
+Version: 1.0.1
 Summary: ProtonDrive Linux GUI Client
 Home-page: https://github.com/donniedice/protondrive-linux
 Author: donniedice
-Author-email: donniedice@protonmail.com
+Author-email: donniedice <donniedice@protonmail.com>
+License: GPL-3.0-or-later
+Project-URL: Homepage, https://github.com/donniedice/protondrive-linux
+Project-URL: Issues, https://github.com/donniedice/protondrive-linux/issues
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: End Users/Desktop
-Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)
 Classifier: Operating System :: POSIX :: Linux
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 License-File: LICENSE
-Requires-Dist: tkinter
 Dynamic: author
-Dynamic: author-email
-Dynamic: classifier
-Dynamic: description
-Dynamic: description-content-type
 Dynamic: home-page
 Dynamic: license-file
-Dynamic: requires-dist
 Dynamic: requires-python
-Dynamic: summary
 
 # ProtonDrive Linux Client
 

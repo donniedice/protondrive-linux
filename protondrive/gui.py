@@ -51,8 +51,13 @@ class ProtonDriveGUI:
         self.password_entry = ttk.Entry(config_frame, textvariable=self.password_var, show="*", width=40)
         self.password_entry.grid(row=1, column=1, padx=(10, 0), pady=(10, 0))
         
+        ttk.Label(config_frame, text="2FA Code (if enabled):").grid(row=2, column=0, sticky=tk.W, pady=(10, 0))
+        self.twofa_var = tk.StringVar()
+        self.twofa_entry = ttk.Entry(config_frame, textvariable=self.twofa_var, width=40)
+        self.twofa_entry.grid(row=2, column=1, padx=(10, 0), pady=(10, 0))
+        
         self.config_btn = ttk.Button(config_frame, text="Configure ProtonDrive", command=self.configure_remote)
-        self.config_btn.grid(row=2, column=0, columnspan=2, pady=(10, 0))
+        self.config_btn.grid(row=3, column=0, columnspan=2, pady=(10, 0))
         
         # Actions section
         actions_frame = ttk.LabelFrame(main_frame, text="Actions", padding="10")
@@ -104,6 +109,7 @@ class ProtonDriveGUI:
     def configure_remote(self):
         email = self.email_var.get().strip()
         password = self.password_var.get().strip()
+        twofa = self.twofa_var.get().strip()
         
         if not email or not password:
             messagebox.showerror("Error", "Please enter both email and password")
@@ -111,16 +117,45 @@ class ProtonDriveGUI:
         
         def config_thread():
             try:
-                # Create rclone config
+                # First, obscure the password
+                obscure_result = subprocess.run(
+                    ["rclone", "obscure", password],
+                    capture_output=True, text=True
+                )
+                
+                if obscure_result.returncode != 0:
+                    self.log(f"Failed to obscure password: {obscure_result.stderr}")
+                    return
+                    
+                obscured_pass = obscure_result.stdout.strip()
+                
+                # Delete existing config if it exists
+                subprocess.run(["rclone", "config", "delete", "protondrive"], 
+                             capture_output=True, text=True)
+                
+                # Create rclone config with obscured password
                 config_cmd = [
                     "rclone", "config", "create", "protondrive", "protondrive",
-                    f"user={email}", f"pass={password}"
+                    f"user={email}", f"pass={obscured_pass}"
                 ]
+                
+                # Add 2FA if provided
+                if twofa:
+                    config_cmd.append(f"2fa={twofa}")
                 
                 result = subprocess.run(config_cmd, capture_output=True, text=True)
                 
                 if result.returncode == 0:
                     self.log("✓ ProtonDrive configured successfully!")
+                    # Test the connection
+                    test_result = subprocess.run(
+                        ["rclone", "lsd", "protondrive:"],
+                        capture_output=True, text=True
+                    )
+                    if test_result.returncode == 0:
+                        self.log("✓ Connection test successful!")
+                    else:
+                        self.log(f"Connection test failed: {test_result.stderr}")
                 else:
                     self.log(f"Configuration failed: {result.stderr}")
                     
