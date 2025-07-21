@@ -8,7 +8,7 @@ import sys
 import os
 import subprocess
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox, simpledialog
 import threading
 import configparser
 
@@ -134,7 +134,7 @@ class ProtonDriveGUI:
         if not local_folder:
             return
         
-        remote_folder = tk.simpledialog.askstring("Remote Folder", "Enter ProtonDrive folder name:")
+        remote_folder = simpledialog.askstring("Remote Folder", "Enter ProtonDrive folder name:")
         if not remote_folder:
             remote_folder = ""
         
@@ -202,7 +202,11 @@ class ProtonDriveGUI:
         self.output_text.see(tk.END)
         self.root.update_idletasks()
 
-if __name__ == "__main__":
+def main():
+    """Entry point for the application"""
     root = tk.Tk()
     app = ProtonDriveGUI(root)
     root.mainloop()
+
+if __name__ == "__main__":
+    main()
