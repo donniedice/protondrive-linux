@@ -1,9 +1,9 @@
 # Maintainer: donniedice <donniedice@protonmail.com>
 
 pkgname=protondrive-linux
-pkgver=1.0.0
+pkgver=1.1.0
 pkgrel=1
-pkgdesc="ProtonDrive Linux GUI Client - Unofficial desktop client for ProtonDrive"
+pkgdesc="ProtonDrive Linux GUI Client - Premium unofficial client with Proton's signature design"
 arch=('any')
 url="https://github.com/donniedice/protondrive-linux"
 license=('GPL3')
