@@ -18,7 +18,7 @@ setup(
         ],
     },
     install_requires=[
-        "tkinter",
+        # tkinter is included with Python, not a pip package
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
