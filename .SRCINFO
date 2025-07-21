@@ -1,0 +1,15 @@
+pkgbase = protondrive-linux
+	pkgdesc = ProtonDrive Linux GUI Client - Unofficial desktop client for ProtonDrive
+	pkgver = 1.0.0
+	pkgrel = 1
+	url = https://github.com/donniedice/protondrive-linux
+	arch = any
+	license = GPL3
+	makedepends = python-setuptools
+	depends = python
+	depends = rclone
+	depends = tk
+	source = protondrive-linux-1.0.0.tar.gz::https://github.com/donniedice/protondrive-linux/archive/v1.0.0.tar.gz
+	sha256sums = SKIP
+
+pkgname = protondrive-linux

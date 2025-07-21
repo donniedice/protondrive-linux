@@ -1,0 +1,213 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-tk rclone
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest pytest-cov black
+        pip install -r requirements.txt
+    
+    - name: Lint with flake8
+      run: |
+        flake8 protondrive --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 protondrive --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Format check with black
+      run: |
+        black --check protondrive
+    
+    - name: Test with pytest
+      run: |
+        pytest tests/ --cov=protondrive --cov-report=xml
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+
+  build-packages:
+    needs: test
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y rpm dpkg-dev
+        python -m pip install --upgrade pip
+        pip install build wheel setuptools
+    
+    - name: Build Python package
+      run: |
+        python -m build
+    
+    - name: Build DEB package
+      run: |
+        mkdir -p debian/DEBIAN
+        cat > debian/DEBIAN/control << EOF
+        Package: protondrive-linux
+        Version: ${GITHUB_REF_NAME#v}
+        Section: utils
+        Priority: optional
+        Architecture: all
+        Depends: python3, python3-tk, rclone
+        Maintainer: donniedice <donniedice@protonmail.com>
+        Description: ProtonDrive Linux GUI Client
+         Unofficial desktop client for ProtonDrive on Linux
+        EOF
+        
+        mkdir -p debian/usr/bin
+        mkdir -p debian/usr/share/applications
+        mkdir -p debian/usr/share/pixmaps
+        
+        cp -r protondrive debian/usr/lib/python3/dist-packages/
+        echo '#!/usr/bin/env python3\nfrom protondrive import main\nmain()' > debian/usr/bin/protondrive-gui
+        chmod +x debian/usr/bin/protondrive-gui
+        
+        cp protondrive-linux.desktop debian/usr/share/applications/
+        cp icons/protondrive.png debian/usr/share/pixmaps/
+        
+        dpkg-deb --build debian protondrive-linux_${GITHUB_REF_NAME#v}_all.deb
+    
+    - name: Build RPM package
+      run: |
+        # RPM build steps here
+        echo "RPM build would go here"
+    
+    - name: Build AppImage
+      run: |
+        wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+        chmod +x appimagetool-x86_64.AppImage
+        
+        mkdir -p AppDir/usr/bin
+        mkdir -p AppDir/usr/share/applications
+        mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+        
+        cp -r protondrive AppDir/usr/lib/python3/
+        echo '#!/usr/bin/env python3\nfrom protondrive import main\nmain()' > AppDir/usr/bin/protondrive-gui
+        chmod +x AppDir/usr/bin/protondrive-gui
+        
+        cp protondrive-linux.desktop AppDir/
+        cp icons/protondrive.png AppDir/usr/share/icons/hicolor/256x256/apps/
+        
+        ./appimagetool-x86_64.AppImage AppDir ProtonDrive-x86_64.AppImage
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: packages
+        path: |
+          dist/*
+          *.deb
+          *.rpm
+          *.AppImage
+
+  release:
+    needs: build-packages
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: packages
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/*
+          *.deb
+          *.rpm
+          *.AppImage
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+
+  update-aur:
+    needs: release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Update AUR package
+      env:
+        AUR_SSH_KEY: ${{ secrets.AUR_SSH_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$AUR_SSH_KEY" > ~/.ssh/aur_key
+        chmod 600 ~/.ssh/aur_key
+        
+        git config --global user.name "donniedice"
+        git config --global user.email "donniedice@protonmail.com"
+        
+        ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+        
+        GIT_SSH_COMMAND="ssh -i ~/.ssh/aur_key" git clone ssh://aur@aur.archlinux.org/protondrive-linux.git aur-repo
+        cd aur-repo
+        
+        # Update PKGBUILD version
+        sed -i "s/pkgver=.*/pkgver=${GITHUB_REF_NAME#v}/" PKGBUILD
+        
+        # Update .SRCINFO
+        makepkg --printsrcinfo > .SRCINFO
+        
+        git add PKGBUILD .SRCINFO
+        git commit -m "Update to version ${GITHUB_REF_NAME#v}"
+        GIT_SSH_COMMAND="ssh -i ~/.ssh/aur_key" git push
+
+  flatpak:
+    needs: release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build Flatpak
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y flatpak flatpak-builder
+        
+        # Flatpak manifest and build steps would go here
+        echo "Flatpak build would go here"
