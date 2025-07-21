@@ -5,15 +5,16 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![CI/CD](https://github.com/donniedice/protondrive-linux/actions/workflows/ci.yml/badge.svg)](https://github.com/donniedice/protondrive-linux/actions)
 
-An unofficial Linux desktop client for ProtonDrive, built with Python and Tkinter. This client provides a simple GUI interface for managing your ProtonDrive files on Linux systems.
+An unofficial Linux desktop client for ProtonDrive, featuring a premium GUI that matches Proton's signature design. Built with Python and Tkinter, this client provides a beautiful, modern interface for managing your ProtonDrive files on Linux systems.
 
 ## 🚀 Features
 
-- 🔐 **Secure Authentication** - ProtonMail credentials with rclone backend
+- 🎨 **Premium Proton Design** - Beautiful dark theme matching Proton's signature style
+- 🔐 **Secure Authentication** - ProtonMail credentials with full 2FA support
 - 📁 **Sync Folders** - Bi-directional sync between local and ProtonDrive
 - 🔍 **Browse Files** - Navigate your ProtonDrive storage
 - 💾 **Mount as Drive** - Access ProtonDrive as local filesystem
-- 🖥️ **Native GUI** - Built with Tkinter for lightweight performance
+- 🖥️ **Modern GUI** - Sleek interface with status indicators and activity log
 - 🐧 **Desktop Integration** - System tray, notifications, and .desktop file
 
 ## 📦 Installation
